@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Identity Iceberg</title>
+<style>
+  :root{
+    --ink:#111318;
+    --panel:#181b22;
+    --glow-violet:#8b7ff0;
+    --glow-cyan:#5fe3d4;
+    --paper:#eae7e0;
+    --muted:#9a9db0;
+    --water-deep:#0a2540;
+    --water-mid:#12406b;
+    --water-light:#1f6fa8;
+    --ice-light:#eef7fb;
+    --ice-mid:#bfe6f2;
+    --ice-shadow:#7fb8cf;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(139,127,240,0.16), transparent 45%),
+      radial-gradient(circle at 85% 8%, rgba(95,227,212,0.12), transparent 40%),
+      var(--ink);
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    color: var(--paper);
+    padding: 0 0 90px 0;
+  }
+
+  header{
+    padding: 72px 24px 20px;
+    text-align:center;
+  }
+
+  h1{
+    font-size: clamp(2.4rem, 6vw, 4.4rem);
+    margin: 0;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-shadow:
+      0 0 18px rgba(139,127,240,0.55),
+      0 0 46px rgba(95,227,212,0.25);
+  }
+
+  h1 em{
+    font-style: italic;
+    color: var(--glow-cyan);
+  }
+
+  .rule{
+    width: 72px;
+    height: 1px;
+    margin: 26px auto 0;
+    background: linear-gradient(90deg, transparent, var(--glow-violet), transparent);
+  }
+
+  .stage{
+    max-width: 900px;
+    margin: 30px auto 0;
+    padding: 0 20px;
+  }
+
+  .berg-wrap{
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .berg-wrap svg{
+    display:block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* sky */
+  .sky-top{ stop-color:#2a2f68; }
+  .sky-bot{ stop-color:#4b6fa8; }
+
+  /* chips */
+  .chip{
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height: 1.15;
+    border-radius: 999px;
+    padding: 6px 4px;
+    user-select:none;
+  }
+
+  .chip.pos{
+    background: rgba(255,255,255,0.88);
+    color: #14324a;
+    font-size: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(127,184,207,0.6);
+  }
+
+  .chip.neg{
+    background: rgba(17,19,24,0.82);
+    color: var(--glow-cyan);
+    font-size: 14px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(95,227,212,0.35);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition-delay: var(--d, 0s);
+  }
+
+  .berg-wrap.revealed .chip.neg{
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* water */
+  .water-group{ }
+
+  .wave-layer{
+    animation: drift 9s linear infinite;
+  }
+  .wave-layer.slow{
+    animation-duration: 15s;
+    opacity: 0.55;
+  }
+
+  @keyframes drift{
+    from{ transform: translateX(0); }
+    to{ transform: translateX(-450px); }
+  }
+
+  .water-body{
+    fill: url(#waterGrad);
+    opacity: 0.94;
+    transition: opacity 1s ease;
+  }
+  .wave-fill{
+    fill: url(#waterGrad);
+    transition: opacity 1s ease;
+  }
+  .wave-fill.top{
+    opacity: 0.85;
+  }
+
+  .berg-wrap.revealed .water-body{
+    opacity: 0.18;
+  }
+  .berg-wrap.revealed .wave-fill{
+    opacity: 0.22;
+  }
+
+  .hint{
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    fill: rgba(255,255,255,0.85);
+    text-anchor: middle;
+    opacity: 0.9;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulse{
+    0%, 100%{ opacity: 0.5; }
+    50%{ opacity: 1; }
+  }
+
+  .berg-wrap.revealed .hint{
+    opacity: 0;
+  }
+
+  .caption{
+    text-align:center;
+    margin-top: 22px;
+    color: var(--muted);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+
+  .bird{
+    stroke: rgba(255,255,255,0.55);
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+  }
+</style></head>
+<body>
+<header>
+  <h1>Identity <em>Iceberg</em></h1>
+  <div class="rule"></div>
+</header>
+
+<div class="stage">
+  <div class="berg-wrap" id="bergWrap" role="button" tabindex="0" aria-label="Click to reveal what's beneath the surface">
+    <svg viewBox="0 0 900 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" class="sky-top"/>
+          <stop offset="100%" class="sky-bot"/>
+        </linearGradient>
+        <linearGradient id="iceGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--ice-light)"/>
+          <stop offset="100%" stop-color="var(--ice-mid)"/>
+        </linearGradient>
+        <linearGradient id="iceUnderGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2f6f8f"/>
+          <stop offset="100%" stop-color="#0f3350"/>
+        </linearGradient>
+        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--water-light)"/>
+          <stop offset="45%" stop-color="var(--water-mid)"/>
+          <stop offset="100%" stop-color="var(--water-deep)"/>
+        </linearGradient>
+        <clipPath id="waterClip">
+          <rect x="0" y="378" width="900" height="622"/>
+        </clipPath>
+      </defs>
+
+      <!-- sky -->
+      <rect x="0" y="0" width="900" height="1000" fill="url(#skyGrad)"/>
+
+      <!-- birds -->
+      <path class="bird" d="M120,90 q10,-14 20,0 q10,-14 20,0"/>
+      <path class="bird" d="M700,70 q9,-12 18,0 q9,-12 18,0"/>
+      <path class="bird" d="M770,120 q8,-11 16,0 q8,-11 16,0"/>
+      <path class="bird" d="M60,150 q8,-11 16,0 q8,-11 16,0"/>
+
+      <!-- underwater ice mass (behind the water) -->
+      <polygon fill="url(#iceUnderGrad)" points="
+        105,380 88,470 130,540 78,610 145,690 95,760
+        195,845 300,915 405,945 520,915 615,845
+        710,760 662,690 730,610 675,540 715,470 700,380
+      "/>
+
+      <!-- above-water ice peak -->
+      <polygon fill="url(#iceGrad)" stroke="#9fd3e6" stroke-width="2" points="
+        150,382 150,345 195,300 232,248 262,300
+        302,175 342,258 384,110 424,238
+        462,142 502,258 542,182 582,300
+        620,258 652,345 652,382
+      "/>
+
+      <!-- waterline -->
+      <line x1="70" y1="381" x2="730" y2="381" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+
+      <!-- positive chips (above surface) -->
+      <foreignObject x="130" y="135" width="140" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Confident</div></foreignObject>
+      <foreignObject x="290" y="135" width="140" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Extrovert</div></foreignObject>
+      <foreignObject x="450" y="135" width="130" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Friendly</div></foreignObject>
+      <foreignObject x="120" y="195" width="140" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Empathetic</div></foreignObject>
+      <foreignObject x="280" y="195" width="170" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Compassionate</div></foreignObject>
+      <foreignObject x="470" y="195" width="130" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Carefree</div></foreignObject>
+      <foreignObject x="140" y="255" width="110" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Brave</div></foreignObject>
+      <foreignObject x="280" y="255" width="130" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Positivity</div></foreignObject>
+      <foreignObject x="440" y="255" width="110" height="46"><div xmlns="http://www.w3.org/1999/xhtml" class="chip pos">Strong</div></foreignObject>
+
+      <!-- negative chips (below surface, hidden until revealed) -->
+      <foreignObject x="330" y="450" width="160" height="50" style="--d:0.05s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Imposter syndrome</div></foreignObject>
+      <foreignObject x="150" y="520" width="100" height="46" style="--d:0.1s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Fear</div></foreignObject>
+      <foreignObject x="560" y="500" width="110" height="46" style="--d:0.15s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Anxiety</div></foreignObject>
+      <foreignObject x="230" y="610" width="130" height="46" style="--d:0.2s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Frustration</div></foreignObject>
+      <foreignObject x="480" y="640" width="130" height="46" style="--d:0.25s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Depression</div></foreignObject>
+      <foreignObject x="170" y="700" width="100" height="46" style="--d:0.3s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Anger</div></foreignObject>
+      <foreignObject x="580" y="720" width="100" height="46" style="--d:0.35s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">PTSD</div></foreignObject>
+      <foreignObject x="330" y="770" width="110" height="46" style="--d:0.4s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Trauma</div></foreignObject>
+      <foreignObject x="450" y="820" width="110" height="46" style="--d:0.45s"><div xmlns="http://www.w3.org/1999/xhtml" class="chip neg">Regret</div></foreignObject>
+
+      <!-- water covering the submerged part -->
+      <g class="water-group" clip-path="url(#waterClip)">
+        <rect class="water-body" x="0" y="378" width="900" height="622"/>
+        <g class="wave-layer slow">
+          <path class="wave-fill" d="M0,398 C40,378 80,418 120,398 C160,378 200,418 240,398
+            C280,378 320,418 360,398 C400,378 440,418 480,398
+            C520,378 560,418 600,398 C640,378 680,418 720,398
+            C760,378 800,418 840,398 C880,378 900,398 900,398
+            L900,1000 L0,1000 Z
+            M450,398 C490,378 530,418 570,398 C610,378 650,418 690,398
+            C730,378 770,418 810,398 C850,378 890,418 930,398
+            C970,378 1010,418 1050,398 C1090,378 1130,418 1170,398
+            C1210,378 1250,418 1290,398 C1330,378 1350,398 1350,398 Z"/>
+        </g>
+        <g class="wave-layer">
+          <path class="wave-fill top" d="M0,390 C30,372 60,406 90,390 C120,372 150,406 180,390
+            C210,372 240,406 270,390 C300,372 330,406 360,390
+            C390,372 420,406 450,390 C480,372 510,406 540,390
+            C570,372 600,406 630,390 C660,372 690,406 720,390
+            C750,372 780,406 810,390 C840,372 870,406 900,390
+            L900,1000 L0,1000 Z
+            M450,390 C480,372 510,406 540,390 C570,372 600,406 630,390
+            C660,372 690,406 720,390 C750,372 780,406 810,390
+            C840,372 870,406 900,390 C930,372 960,406 990,390
+            C1020,372 1050,406 1080,390 C1110,372 1140,406 1170,390
+            C1200,372 1230,406 1260,390 C1290,372 1320,406 1350,390 Z"/>
+        </g>
+      </g>
+
+      <text class="hint" x="400" y="700">CLICK THE WATER TO SEE WHAT'S BENEATH THE SURFACE</text>
+    </svg>
+  </div>
+
+</div>
+
+<script>
+  const wrap = document.getElementById('bergWrap');
+  function toggle(){
+    wrap.classList.toggle('revealed');
+  }
+  wrap.addEventListener('click', toggle);
+  wrap.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      toggle();
+    }
+  });
+</script>
+
+</div>
+</body>
+</html>
